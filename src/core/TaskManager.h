@@ -21,7 +21,7 @@ class TaskManager {
 public:
     explicit TaskManager();
 
-    void load(const QDir &dir);
+    void load(const QString &taskPath);
 
     TaskLoadStatus getLoadStatus() const;
 

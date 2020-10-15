@@ -8,11 +8,12 @@ TaskManager::TaskManager()
 {}
 
 void
-TaskManager::load(const QDir &dir)
+TaskManager::load(const QString &taskPath)
 {
     m_taskList.clear();     /* отчистка старых заданий */
     /* ----- Чтение файлов с вариантами заданий ----- */
     QStringList filter("*.html");
+    QDir dir(taskPath);
     QStringList taskList = dir.entryList(filter, QDir::Files);
     for(const QString &task : taskList) {
         /* ----- Обработка каждого задания ----- */
