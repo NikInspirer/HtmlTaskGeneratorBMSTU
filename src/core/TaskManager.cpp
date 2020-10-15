@@ -4,7 +4,7 @@
 #include <QDebug>
 
 TaskManager::TaskManager()
-    : m_loadStatus(TaskLoadStatus::NOT_LOADED)
+    : m_loadStatus(TaskManStatus::NOT_LOADED)
 {}
 
 void
@@ -21,16 +21,16 @@ TaskManager::load(const QString &taskPath)
         desc.fileName = task;
         m_taskList.append(desc);    /* сохранение данных задания */
     }
-    /* изменение статуса загрузки заданий */
+    /* изменение статуса */
     if (taskList.isEmpty() == true) {
-        m_loadStatus = TaskLoadStatus::ERROR_EMPTY;
+        m_loadStatus = TaskManStatus::ERROR_EMPTY;
     }
     else {
-        m_loadStatus = TaskLoadStatus::LOADED;
+        m_loadStatus = TaskManStatus::LOADED;
     }
 }
 
-TaskLoadStatus
+TaskManStatus
 TaskManager::getLoadStatus() const
 {
     return m_loadStatus;

@@ -4,13 +4,14 @@
 #include <core/TaskInfo.h>
 
 /**
- * @brief Статус загрузки вариантов заданий.
+ * @brief Статус менеджера заданий.
  */
-enum class TaskLoadStatus {
-    NOT_LOADED,     ///< Варианты заданий не загруженны.
-    ERROR_EMPTY,    ///< При загрузке не найдены задания.
-    LOADED,         ///< Варианты заданий загружены.
-    CREATED         ///< Задания сфоримрованы.
+enum class TaskManStatus {
+    NOT_LOADED,                 ///< Варианты заданий не загруженны.
+    ERROR_EMPTY,                ///< При загрузке не найдены задания.
+    LOADED,                     ///< Варианты заданий загружены.
+    ERROR_CAN_NOT_CREATE_FILE,  ///< Не удается создать файл итогового задания.
+    CREATED                     ///< Задания сфоримрованы.
 };
 
 /**
@@ -23,11 +24,11 @@ public:
 
     void load(const QString &taskPath);
 
-    TaskLoadStatus getLoadStatus() const;
+    TaskManStatus getLoadStatus() const;
 
 private:
     TaskDesc readTaskFile(const QString &path);
 
-    TaskLoadStatus m_loadStatus;    ///< Статус загрузки вариантов заданий.
+    TaskManStatus m_loadStatus;     ///< Статус менеджера заданий.
     QList<TaskDesc> m_taskList;     ///< Список загруженных заданий.
 };
