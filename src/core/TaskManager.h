@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDir>
+#include <core/TaskInfo.h>
 
 /**
  * @brief The TaskManager class
@@ -12,5 +13,5 @@ public:
     void load(const QDir &dir);
 
 private:
-    void readTaskFile(const QString &path);
+    TaskDesc readTaskFile(const QString &path);
 };
