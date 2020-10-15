@@ -9,4 +9,7 @@ class TaskManager {
 public:
     explicit TaskManager() {};
     void load(const QDir &dir);
+
+private:
+    void readTaskFile(const QString &path);
 };
