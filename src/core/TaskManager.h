@@ -19,7 +19,10 @@ class TaskManager {
 
 public:
     explicit TaskManager();
+
     void load(const QDir &dir);
+
+    TaskLoadStatus getLoadStatus() const;
 
 private:
     TaskDesc readTaskFile(const QString &path);

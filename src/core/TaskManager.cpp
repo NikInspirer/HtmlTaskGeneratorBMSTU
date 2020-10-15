@@ -24,6 +24,12 @@ TaskManager::load(const QDir &dir)
     m_loadStatus = TaskLoadStatus::LOADED;
 }
 
+TaskLoadStatus
+TaskManager::getLoadStatus() const
+{
+    return m_loadStatus;
+}
+
 TaskDesc
 TaskManager::readTaskFile(const QString &path)
 {
