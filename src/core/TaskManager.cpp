@@ -21,7 +21,12 @@ TaskManager::load(const QDir &dir)
         m_taskList.append(desc);    /* сохранение данных задания */
     }
     /* изменение статуса загрузки заданий */
-    m_loadStatus = TaskLoadStatus::LOADED;
+    if (taskList.isEmpty() == true) {
+        m_loadStatus = TaskLoadStatus::ERROR_EMPTY;
+    }
+    else {
+        m_loadStatus = TaskLoadStatus::LOADED;
+    }
 }
 
 TaskLoadStatus
