@@ -3,21 +3,25 @@
 #include <QDomDocument>
 #include <QDebug>
 
+TaskManager::TaskManager()
+    : m_loadStatus(TaskLoadStatus::NOT_LOADED)
+{}
+
 void
 TaskManager::load(const QDir &dir)
 {
+    m_taskList.clear();     /* отчистка старых заданий */
+    /* ----- Чтение файлов с вариантами заданий ----- */
     QStringList filter("*.html");
     QStringList taskList = dir.entryList(filter, QDir::Files);
     for(const QString &task : taskList) {
+        /* ----- Обработка каждого задания ----- */
         TaskDesc desc = this->readTaskFile( dir.absoluteFilePath(task) );
         desc.fileName = task;
-
-        // TODO: сохранение данных задания в памяти + СТАТУС
-        qDebug() << desc.taskTitle.toElement().text();
-        for (QDomNode t : desc.taskList) {
-            qDebug() << t.toElement().text();
-        }
+        m_taskList.append(desc);    /* сохранение данных задания */
     }
+    /* изменение статуса загрузки заданий */
+    m_loadStatus = TaskLoadStatus::LOADED;
 }
 
 TaskDesc
