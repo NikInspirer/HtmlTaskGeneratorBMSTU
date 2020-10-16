@@ -25,6 +25,7 @@ public:
     void load(const QString &taskPath);
 
     TaskManStatus getLoadStatus() const;
+    int getMaxTaskCount() const;
 
 private:
     TaskDesc readTaskFile(const QString &path);

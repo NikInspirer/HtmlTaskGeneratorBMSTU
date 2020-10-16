@@ -36,6 +36,18 @@ TaskManager::getLoadStatus() const
     return m_loadStatus;
 }
 
+int
+TaskManager::getMaxTaskCount() const
+{
+    int count = 0;
+    for (const TaskDesc &task : m_taskList) {
+        if (count < task.taskList.size()) {
+            count = task.taskList.size();
+        }
+    }
+    return count;
+}
+
 TaskDesc
 TaskManager::readTaskFile(const QString &path)
 {
