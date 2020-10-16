@@ -8,12 +8,12 @@ TaskManager::TaskManager()
 {}
 
 void
-TaskManager::load(const QString &taskPath)
+TaskManager::load(const QString &path)
 {
     m_taskList.clear();     /* отчистка старых заданий */
     /* ----- Чтение файлов с вариантами заданий ----- */
     QStringList filter("*.html");
-    QDir dir(taskPath);
+    QDir dir(path);
     QStringList taskList = dir.entryList(filter, QDir::Files);
     for(const QString &task : taskList) {
         /* ----- Обработка каждого задания ----- */
@@ -37,12 +37,12 @@ TaskManager::getLoadStatus() const
 }
 
 int
-TaskManager::getMaxTaskCount() const
+TaskManager::getMaxVarCount() const
 {
     int count = 0;
     for (const TaskDesc &task : m_taskList) {
-        if (count < task.taskList.size()) {
-            count = task.taskList.size();
+        if (count < task.varList.size()) {
+            count = task.varList.size();
         }
     }
     return count;
@@ -65,11 +65,11 @@ TaskManager::readTaskFile(const QString &path)
                     QString classAttr = el.attribute("class");
                     if (classAttr == "title") {
                         /* найдено название задания => запоминаем */
-                        description.taskTitle = el;
+                        description.title = el;
                     }
                     if (classAttr == "task") {
                         /* найден вариант задания => добавляем в список */
-                        description.taskList.append(el);
+                        description.varList.append(el);
                     }
                 }
             }

@@ -19,6 +19,6 @@ enum class TaskProcStatus {
 struct TaskDesc {
     QString fileName;           ///< Название файла задания.
     TaskProcStatus status;      ///< Статус обраотки файла задания.
-    QDomNode taskTitle;         ///< DOM-элемент заголовка задания.
-    QList<QDomNode> taskList;   ///< Список DOM-элементов вариантов задания.
+    QDomNode title;             ///< DOM-элемент заголовка задания.
+    QList<QDomNode> varList;    ///< Список DOM-элементов вариантов задания.
 };

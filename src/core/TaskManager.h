@@ -22,10 +22,10 @@ class TaskManager {
 public:
     explicit TaskManager();
 
-    void load(const QString &taskPath);
+    void load(const QString &path);
 
     TaskManStatus getLoadStatus() const;
-    int getMaxTaskCount() const;
+    int getMaxVarCount() const;
 
 private:
     TaskDesc readTaskFile(const QString &path);
