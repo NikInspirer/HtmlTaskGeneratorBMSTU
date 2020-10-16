@@ -1,6 +1,7 @@
 
 #include "TaskManager.h"
 #include <QDomDocument>
+#include <QRandomGenerator>
 #include <QDebug>
 
 TaskManager::TaskManager()
@@ -27,6 +28,23 @@ TaskManager::load(const QString &path)
     }
     else {
         m_loadStatus = TaskManStatus::LOADED;
+    }
+}
+
+void
+TaskManager::generate(const GenSettings &settings)
+{
+    /* ----- Формирование для каждой группы ----- */
+    for (int iteration = 0; iteration < settings.groupCount; iteration++) {
+        /* ----- Проход по каждому заданию ----- */
+        for (const TaskDesc &task : m_taskList) {
+            /* ----- Формирование варианта ----- */
+            QList<int> randOrder = this->genRandOrder(settings.varCount);
+            for (int var : randOrder) {
+                const QDomNode &varEl = task.varList.at(var);
+                qDebug() << varEl.toElement().text();
+            }
+        }
     }
 }
 
@@ -85,4 +103,22 @@ TaskManager::readTaskFile(const QString &path)
     }
 
     return description;
+}
+
+QList<int>
+TaskManager::genRandOrder(int len) const
+{
+    int *order = new int[len];
+    /* наполнение индексов в порядке возрастания */
+    for (int n = 0; n < len; n++) order[n] = n;
+    /* сортировка в случайном порядке */
+    for (int i = 0; i < len; i++) {
+        int j = QRandomGenerator::global()->bounded(len);
+        qSwap(order[i], order[j]);
+    }
+    /* формирование списка */
+    QList<int> orderList;
+    for (int n = 0; n < len; n++) orderList.append(order[n]);
+    delete [] order;
+    return orderList;
 }

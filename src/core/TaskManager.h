@@ -15,6 +15,16 @@ enum class TaskManStatus {
 };
 
 /**
+ * @brief Настройки процесса генерации заданий.
+ */
+struct GenSettings {
+    QString path;       ///< Директория, где происходит генерация.
+    QString name;       ///< Название групп заданий (каталог).
+    int varCount;       ///< Количество генерируемых вариантов.
+    int groupCount;     ///< Количество групп заданий.
+};
+
+/**
  * @brief The TaskManager class
  */
 class TaskManager {
@@ -23,12 +33,13 @@ public:
     explicit TaskManager();
 
     void load(const QString &path);
-
+    void generate(const GenSettings &settings);
     TaskManStatus getLoadStatus() const;
     int getMaxVarCount() const;
 
 private:
     TaskDesc readTaskFile(const QString &path);
+    QList<int> genRandOrder(int len) const;
 
     TaskManStatus m_loadStatus;     ///< Статус менеджера заданий.
     QList<TaskDesc> m_taskList;     ///< Список загруженных заданий.
