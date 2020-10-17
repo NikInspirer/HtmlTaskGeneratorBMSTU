@@ -5,10 +5,16 @@
 #include <QDebug>
 
 TaskManager::TaskManager()
-    : m_loadStatus(TaskManStatus::NOT_LOADED)
+    : m_loadStatus(LoadStatus::NOT_LOADED)
 {}
 
-void
+LoadStatus
+TaskManager::getLoadStatus() const
+{
+    return m_loadStatus;
+}
+
+LoadStatus
 TaskManager::load(const QString &path)
 {
     m_taskList.clear();     /* отчистка старых заданий */
@@ -24,46 +30,104 @@ TaskManager::load(const QString &path)
     }
     /* изменение статуса */
     if (taskList.isEmpty() == true) {
-        m_loadStatus = TaskManStatus::ERROR_EMPTY;
+        m_loadStatus = LoadStatus::EMPTY;
     }
     else {
-        m_loadStatus = TaskManStatus::LOADED;
+        m_loadStatus = LoadStatus::LOADED;
     }
+    return this->getLoadStatus();
 }
 
-void
+GenStatus
 TaskManager::generate(const GenSettings &settings)
 {
-    /* ----- Формирование для каждой группы ----- */
-    for (int iteration = 0; iteration < settings.groupCount; iteration++) {
-        /* ----- Проход по каждому заданию ----- */
-        for (const TaskDesc &task : m_taskList) {
-            /* ----- Формирование варианта ----- */
-            QList<int> randOrder = this->genRandOrder(settings.varCount);
-            for (int var : randOrder) {
-                const QDomNode &varEl = task.vars[var];
-                qDebug() << varEl.toElement().text();
+    GenStatus status = GenStatus::SUCCESS;  /* статус генерации заданий */
+    int maxVarCount = this->getMaxVarCount();
+    /* ----- Проверка корректности настройки количества вариантов ----- */
+    if ((0 < settings.varCount) && (settings.varCount <= maxVarCount)) {
+        /* ----- Создание директории для заданий ----- */
+        QDir dir(settings.path);
+        if (dir.mkdir(settings.name) == true) {
+            dir.cd(settings.name);
+            /* ----- Создание заданий для каждой группы (независимо) ----- */
+            int group = 0;      /* индекс группы */
+            bool isOk = true;   /* индикатор ошибок генерации */
+            auto grIt = settings.groups.begin();
+            while ((grIt != settings.groups.end()) && isOk) {
+                /* ----- Создание директории группы ----- */
+                if (dir.mkdir( *grIt ) == true) {
+                    dir.cd( *grIt );
+                    /* ----- Генерация случайных номеров задач ----- */
+                    QList<QList<int>> orders;
+                    orders = genRandOrders(this->m_taskList.size(),
+                                           settings.varCount);
+                    /* ----- Создание файлов каждого варианта ----- */
+                    for (int var = 0; var < settings.varCount; var++) {
+                        QString name = settings.name +
+                                       QString(" (вариант %1.%2)").arg(group+1)
+                                                                  .arg(var+1);
+                        QFile file( dir.filePath(name + ".html") );
+                        if (file.open(QIODevice::WriteOnly) == true) {
+                            /* ----- Формирование заданий ----- */
+                            this->generateTaskVar(&file, name,
+                                                  orders.takeFirst());
+                            file.close();
+                        }
+                        else {
+                            /* Не удается создать файл задания */
+                            isOk = false;
+                            status = GenStatus::CAN_NOT_CREATE_FILE;
+                        }
+                    }
+                    dir.cdUp();     /* возврат в директорию всех групп */
+                    group++;        /* увеличение индекса группы */
+                }
+                else {
+                    /* Не удается создать директорию группы */
+                    isOk = false;
+                    status = GenStatus::CAN_NOT_CREATE_DIR;
+                }
+                grIt++;
             }
         }
+        else {
+            /* не удается создать каталог (директорию) */
+            status = GenStatus::CAN_NOT_CREATE_DIR;
+        }
     }
+    else {
+        /* некорректное число вариантов */
+        status = GenStatus::WRONG_VARS_COUNT;
+    }
+    return status;
 }
 
-TaskManStatus
-TaskManager::getLoadStatus() const
-{
-    return m_loadStatus;
-}
-
+/**
+ * @brief Производит расчет максимально дотупного числа вариантов, чтобы
+ * задачи не повоторялись во всех заданиях.
+ *
+ * Вычисляет число вариантов, которые могут быть сформированы таким образом,
+ * чтобы задания во всех задачах не повторялись. По определению, является
+ * минимальным значением вариантов среди всех задач.
+ *
+ * @return Доступное число неповторяющихся вариантов.
+ */
 int
 TaskManager::getMaxVarCount() const
 {
-    int count = 0;
-    for (const TaskDesc &task : m_taskList) {
-        if (count < task.vars.size()) {
-            count = task.vars.size();
+    int min = 0;    /* по-умолчанию 0 вариантов */
+    if (m_taskList.isEmpty() == false) {
+        auto it = m_taskList.begin();
+        min = it->vars.size();  /* min = первое значение */
+        while (it != m_taskList.end()) {
+            int size = it->vars.size();
+            if (size < min) {
+                min = size;
+            }
+            it++;
         }
     }
-    return count;
+    return min;
 }
 
 TaskDesc
@@ -79,15 +143,15 @@ TaskManager::readTaskFile(const QString &path)
                 QDomNode node = nodeList.item(index);
                 if (node.isElement() && node.hasAttributes()) {
                     /* ----- Поиск информации задания по классу ----- */
-                    QDomElement el = node.toElement();
+                    QDomElement el = node.cloneNode(true).toElement();
                     QString classAttr = el.attribute("class");
-                    if (classAttr == "title") {
-                        /* найдено название задания => запоминаем */
-                        description.title = el;
-                    }
-                    if (classAttr == "task") {
+                    if (classAttr == "task_body") {
                         /* найден вариант задания => добавляем в список */
                         description.vars.append(el);
+                    }
+                    else if (classAttr == "task_title") {
+                        /* найдено название задания => запоминаем */
+                        description.title = el;
                     }
                 }
             }
@@ -105,20 +169,71 @@ TaskManager::readTaskFile(const QString &path)
     return description;
 }
 
-QList<int>
-TaskManager::genRandOrder(int len) const
+QList<QList<int>>
+TaskManager::genRandOrders(int taskCount, int varCount) const
 {
-    int *order = new int[len];
-    /* наполнение индексов в порядке возрастания */
-    for (int n = 0; n < len; n++) order[n] = n;
-    /* сортировка в случайном порядке */
-    for (int i = 0; i < len; i++) {
-        int j = QRandomGenerator::global()->bounded(len);
-        qSwap(order[i], order[j]);
+    /* taskVarArr - матрица, которая содержит неповоряющиеся случайные номера
+     * задач для каждого задания: в i-ой строке хранятся все номера задач
+     * i-ого задания (в случайном порядке); а в j-ом столбце - случайные номера
+     * задач для j-ого варианта */
+    int *taskVarArr = new int[taskCount * varCount];
+
+    /* ----- Генерация случайных вариантов для каждого задания ----- */
+    for (int i = 0; i < taskCount; i++) {
+        /* ----- Назначение каждому варианту номера (по возрастанию) ----- */
+        for (int j = 0; j < varCount; j++) {
+            *(taskVarArr + i * varCount + j) = j;
+        }
+        /* ----- Сортировка номеров в случайном пордяке ----- */
+        for (int j = 0; j < varCount; j++) {;
+            int k = QRandomGenerator::global()->bounded(varCount);
+            qSwap( *(taskVarArr + i * varCount + j),
+                   *(taskVarArr + i * varCount + k));
+        }
     }
-    /* формирование списка */
-    QList<int> orderList;
-    for (int n = 0; n < len; n++) orderList.append(order[n]);
-    delete [] order;
-    return orderList;
+
+    /* ----- Формирование спсиков номеров задач для каждого варианта ----- */
+    QList<QList<int>> varTaskList;
+    for (int j = 0; j < varCount; j++) {
+        QList<int> tasks;   /* список номеров задач для j-ого варианта */
+        for (int i = 0; i < taskCount; i++) {
+            tasks.append( *(taskVarArr + i * varCount + j) );
+        }
+        varTaskList.append( tasks );
+    }
+
+    delete [] taskVarArr;
+    return varTaskList;
+}
+
+void
+TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
+                             QList<int> randTaskVars) const
+{
+    /* ----- Загрузка DOM-модели шаблона файла задания ----- */
+    QFile tmpl(":/TaskTemplate.html");
+    QDomDocument doc; doc.setContent(&tmpl);
+    QDomElement title = doc.elementsByTagName("title").at(0).toElement();
+    QDomNodeList divs = doc.elementsByTagName("div");
+    QDomElement titleHolder = divs.at(1).toElement();
+    QDomElement taskHolder = divs.at(2).toElement();
+
+    /* ----- Добавление заголовка файла задания в DOM-модель ----- */
+    QDomText titleTextNode = doc.createTextNode(titleStr);
+    title.appendChild(titleTextNode.cloneNode(true));
+    titleHolder.appendChild(titleTextNode);
+
+    /* ----- Добавление заданий в DOM-модель ----- */
+    for (const TaskDesc &desc : m_taskList) {
+        /* формирование блока задания */
+        QDomElement task = doc.createElement("div");
+        task.setAttribute("class", "task");
+        task.appendChild(desc.title.cloneNode(true));
+        task.appendChild(desc.vars[randTaskVars.takeFirst()].cloneNode(true));
+        /* вставка блока задания в DOM-модель */
+        taskHolder.appendChild(task);
+    }
+
+    /* ----- Сохранение сформированного задания ----- */
+    device->write( doc.toByteArray() );
 }
