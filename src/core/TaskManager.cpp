@@ -63,12 +63,14 @@ TaskManager::generate(const GenSettings &settings)
                                            settings.varCount);
                     /* ----- Создание файлов каждого варианта ----- */
                     for (int var = 0; var < settings.varCount; var++) {
-                        QString varName = QString("Вараинт %1.%2").arg(group+1)
+                        QString name = settings.name +
+                                       QString(" (вариант %1.%2)").arg(group+1)
                                                                   .arg(var+1);
-                        QFile file( dir.filePath(varName + ".html") );
+                        QFile file( dir.filePath(name + ".html") );
                         if (file.open(QIODevice::WriteOnly) == true) {
                             /* ----- Формирование заданий ----- */
-                            this->generateTaskVar(&file, orders.takeFirst());
+                            this->generateTaskVar(&file, name,
+                                                  orders.takeFirst());
                             file.close();
                         }
                         else {
@@ -205,15 +207,21 @@ TaskManager::genRandOrders(int taskCount, int varCount) const
 }
 
 void
-TaskManager::generateTaskVar(QIODevice *device, QList<int> randTaskVars)
+TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
+                             QList<int> randTaskVars) const
 {
     /* ----- Загрузка DOM-модели шаблона файла задания ----- */
     QFile tmpl(":/TaskTemplate.html");
     QDomDocument doc; doc.setContent(&tmpl);
     QDomElement title = doc.elementsByTagName("title").at(0).toElement();
-    auto divs = doc.elementsByTagName("div");
+    QDomNodeList divs = doc.elementsByTagName("div");
     QDomElement titleHolder = divs.at(1).toElement();
     QDomElement taskHolder = divs.at(2).toElement();
+
+    /* ----- Добавление заголовка файла задания в DOM-модель ----- */
+    QDomText titleTextNode = doc.createTextNode(titleStr);
+    title.appendChild(titleTextNode.cloneNode(true));
+    titleHolder.appendChild(titleTextNode);
 
     /* ----- Добавление заданий в DOM-модель ----- */
     for (const TaskDesc &desc : m_taskList) {
