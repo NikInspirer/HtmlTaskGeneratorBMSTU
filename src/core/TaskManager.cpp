@@ -48,16 +48,31 @@ TaskManager::generate(const GenSettings &settings)
     return GenStatus::SUCCESS;
 }
 
+/**
+ * @brief Производит расчет максимально дотупного числа вариантов, чтобы
+ * задачи не повоторялись во всех заданиях.
+ *
+ * Вычисляет число вариантов, которые могут быть сформированы таким образом,
+ * чтобы задания во всех задачах не повторялись. По определению, является
+ * минимальным значением вариантов среди всех задач.
+ *
+ * @return Доступное число неповторяющихся вариантов.
+ */
 int
 TaskManager::getMaxVarCount() const
 {
-    int count = 0;
-    for (const TaskDesc &task : m_taskList) {
-        if (count < task.vars.size()) {
-            count = task.vars.size();
+    int min = 0;    /* по-умолчанию 0 вариантов */
+    if (m_taskList.isEmpty() == false) {
+        auto it = m_taskList.begin();
+        min = it->vars.size();  /* min = первое значение */
+        while (it != m_taskList.end()) {
+            int size = it->vars.size();
+            if (size < min) {
+                min = size;
+            }
         }
     }
-    return count;
+    return min;
 }
 
 TaskDesc
