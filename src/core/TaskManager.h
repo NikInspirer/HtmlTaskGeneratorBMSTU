@@ -28,7 +28,7 @@ public:
 
 private:
     TaskDesc readTaskFile(const QString &path);
-    QList<int> genRandOrder(int len) const;
+    QList<QList<int>> genRandOrders(int taskCount, int varCount) const;
     void generateTaskVar(QIODevice *device, QList<int> randTaskVars);
 
     LoadStatus m_loadStatus;     ///< Статус менеджера заданий.
