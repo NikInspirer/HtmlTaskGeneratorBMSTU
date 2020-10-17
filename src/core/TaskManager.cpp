@@ -5,10 +5,16 @@
 #include <QDebug>
 
 TaskManager::TaskManager()
-    : m_loadStatus(TaskManStatus::NOT_LOADED)
+    : m_loadStatus(LoadStatus::NOT_LOADED)
 {}
 
-void
+LoadStatus
+TaskManager::getLoadStatus() const
+{
+    return m_loadStatus;
+}
+
+LoadStatus
 TaskManager::load(const QString &path)
 {
     m_taskList.clear();     /* отчистка старых заданий */
@@ -24,26 +30,22 @@ TaskManager::load(const QString &path)
     }
     /* изменение статуса */
     if (taskList.isEmpty() == true) {
-        m_loadStatus = TaskManStatus::ERROR_EMPTY;
+        m_loadStatus = LoadStatus::EMPTY;
     }
     else {
-        m_loadStatus = TaskManStatus::LOADED;
+        m_loadStatus = LoadStatus::LOADED;
     }
+    return this->getLoadStatus();
 }
 
-void
+GenStatus
 TaskManager::generate(const GenSettings &settings)
 {
     QFile taskFile("out.html");
     taskFile.open(QIODevice::WriteOnly | QIODevice::Text);
     this->generateTaskVar(&taskFile, this->genRandOrder(2));
     taskFile.close();
-}
-
-TaskManStatus
-TaskManager::getLoadStatus() const
-{
-    return m_loadStatus;
+    return GenStatus::SUCCESS;
 }
 
 int

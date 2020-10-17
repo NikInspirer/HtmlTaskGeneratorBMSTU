@@ -9,6 +9,7 @@ find_package(Qt5 COMPONENTS Xml REQUIRED)
 
 set(HEADER_FILES
     "src/core/TaskInfo.h"
+    "src/core/GenSettings.h"
     "src/core/TaskManager.h")
 
 set(SOURCE_FILES
