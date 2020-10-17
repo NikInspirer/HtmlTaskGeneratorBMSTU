@@ -41,7 +41,7 @@ TaskManager::generate(const GenSettings &settings)
             /* ----- Формирование варианта ----- */
             QList<int> randOrder = this->genRandOrder(settings.varCount);
             for (int var : randOrder) {
-                const QDomNode &varEl = task.varList.at(var);
+                const QDomNode &varEl = task.vars[var];
                 qDebug() << varEl.toElement().text();
             }
         }
@@ -59,8 +59,8 @@ TaskManager::getMaxVarCount() const
 {
     int count = 0;
     for (const TaskDesc &task : m_taskList) {
-        if (count < task.varList.size()) {
-            count = task.varList.size();
+        if (count < task.vars.size()) {
+            count = task.vars.size();
         }
     }
     return count;
@@ -87,7 +87,7 @@ TaskManager::readTaskFile(const QString &path)
                     }
                     if (classAttr == "task") {
                         /* найден вариант задания => добавляем в список */
-                        description.varList.append(el);
+                        description.vars.append(el);
                     }
                 }
             }

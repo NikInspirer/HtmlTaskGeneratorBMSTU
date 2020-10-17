@@ -2,7 +2,7 @@
 
 #include <QString>
 #include <QDomNode>
-#include <QList>
+#include <QVector>
 
 /**
  * @brief Статус обработки файла задания.
@@ -20,5 +20,5 @@ struct TaskDesc {
     QString fileName;           ///< Название файла задания.
     TaskProcStatus status;      ///< Статус обраотки файла задания.
     QDomNode title;             ///< DOM-элемент заголовка задания.
-    QList<QDomNode> varList;    ///< Список DOM-элементов вариантов задания.
+    QVector<QDomNode> vars;     ///< Список DOM-элементов вариантов задания.
 };
