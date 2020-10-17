@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
 
 /**
  * @brief Настройки процесса генерации заданий.
@@ -9,7 +10,7 @@ struct GenSettings {
     QString path;       ///< Директория, где происходит генерация.
     QString name;       ///< Название групп заданий (каталог).
     int varCount;       ///< Количество генерируемых вариантов.
-    int groupCount;     ///< Количество групп заданий.
+    QStringList groups; ///< Названия групп, для которых формируются задания.
 };
 
 /**
