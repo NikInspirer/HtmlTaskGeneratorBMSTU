@@ -35,7 +35,7 @@ void
 TaskManager::generate(const GenSettings &settings)
 {
     QFile taskFile("out.html");
-    taskFile.open(QIODevice::WriteOnly);
+    taskFile.open(QIODevice::WriteOnly | QIODevice::Text);
     this->generateTaskVar(&taskFile, this->genRandOrder(2));
     taskFile.close();
 }
@@ -146,6 +146,5 @@ TaskManager::generateTaskVar(QIODevice *device, QList<int> randTaskVars)
     }
 
     /* ----- Сохранение сформированного задания ----- */
-    QTextStream stream(device);
-    stream << doc.toString();
+    device->write( doc.toByteArray() );
 }
