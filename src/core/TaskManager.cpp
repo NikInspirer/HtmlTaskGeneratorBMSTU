@@ -73,13 +73,13 @@ TaskManager::readTaskFile(const QString &path)
                     /* ----- Поиск информации задания по классу ----- */
                     QDomElement el = node.toElement();
                     QString classAttr = el.attribute("class");
-                    if (classAttr == "title") {
-                        /* найдено название задания => запоминаем */
-                        description.title = el;
-                    }
-                    if (classAttr == "task") {
+                    if (classAttr == "task_body") {
                         /* найден вариант задания => добавляем в список */
                         description.vars.append(el);
+                    }
+                    else if (classAttr == "task_title") {
+                        /* найдено название задания => запоминаем */
+                        description.title = el;
                     }
                 }
             }
@@ -126,21 +126,13 @@ TaskManager::generateTaskVar(QIODevice *device, QList<int> randTaskVars)
     QDomElement titleHolder = divs.at(1).toElement();
     QDomElement taskHolder = divs.at(2).toElement();
 
-    /* ----- Формирование заданий в DOM-моделе ----- */
+    /* ----- Добавление заданий в DOM-модель ----- */
     for (const TaskDesc &desc : m_taskList) {
-        /* формирование названия задания */
-        QDomElement taskTitle = doc.createElement("div");
-        taskTitle.setAttribute("class", "task_title");
-        taskTitle.appendChild( desc.title );
-        /* формирование тела задания */
-        QDomElement taskBody = doc.createElement("div");
-        taskBody.setAttribute("class", "task_body");
-        taskBody.appendChild(desc.vars[randTaskVars.takeFirst()]);
         /* формирование блока задания */
         QDomElement task = doc.createElement("div");
         task.setAttribute("class", "task");
-        task.appendChild(taskTitle);
-        task.appendChild(taskBody);
+        task.appendChild(desc.title);
+        task.appendChild(desc.vars[randTaskVars.takeFirst()]);
         /* вставка блока задания в DOM-модель */
         taskHolder.appendChild(task);
     }
