@@ -34,18 +34,10 @@ TaskManager::load(const QString &path)
 void
 TaskManager::generate(const GenSettings &settings)
 {
-    /* ----- Формирование для каждой группы ----- */
-    for (int iteration = 0; iteration < settings.groupCount; iteration++) {
-        /* ----- Проход по каждому заданию ----- */
-        for (const TaskDesc &task : m_taskList) {
-            /* ----- Формирование варианта ----- */
-            QList<int> randOrder = this->genRandOrder(settings.varCount);
-            for (int var : randOrder) {
-                const QDomNode &varEl = task.vars[var];
-                qDebug() << varEl.toElement().text();
-            }
-        }
-    }
+    QFile taskFile("out.html");
+    taskFile.open(QIODevice::WriteOnly);
+    this->generateTaskVar(&taskFile, this->genRandOrder(2));
+    taskFile.close();
 }
 
 TaskManStatus
@@ -121,4 +113,39 @@ TaskManager::genRandOrder(int len) const
     for (int n = 0; n < len; n++) orderList.append(order[n]);
     delete [] order;
     return orderList;
+}
+
+void
+TaskManager::generateTaskVar(QIODevice *device, QList<int> randTaskVars)
+{
+    /* ----- Загрузка DOM-модели шаблона файла задания ----- */
+    QFile tmpl(":/TaskTemplate.html");
+    QDomDocument doc; doc.setContent(&tmpl);
+    QDomElement title = doc.elementsByTagName("title").at(0).toElement();
+    auto divs = doc.elementsByTagName("div");
+    QDomElement titleHolder = divs.at(1).toElement();
+    QDomElement taskHolder = divs.at(2).toElement();
+
+    /* ----- Формирование заданий в DOM-моделе ----- */
+    for (const TaskDesc &desc : m_taskList) {
+        /* формирование названия задания */
+        QDomElement taskTitle = doc.createElement("div");
+        taskTitle.setAttribute("class", "task_title");
+        taskTitle.appendChild( desc.title );
+        /* формирование тела задания */
+        QDomElement taskBody = doc.createElement("div");
+        taskBody.setAttribute("class", "task_body");
+        taskBody.appendChild(desc.vars[randTaskVars.takeFirst()]);
+        /* формирование блока задания */
+        QDomElement task = doc.createElement("div");
+        task.setAttribute("class", "task");
+        task.appendChild(taskTitle);
+        task.appendChild(taskBody);
+        /* вставка блока задания в DOM-модель */
+        taskHolder.appendChild(task);
+    }
+
+    /* ----- Сохранение сформированного задания ----- */
+    QTextStream stream(device);
+    stream << doc.toString();
 }
