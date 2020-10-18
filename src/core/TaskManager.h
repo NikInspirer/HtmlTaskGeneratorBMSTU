@@ -46,6 +46,6 @@ private:
     void generateTaskVar(QIODevice *device, const QString &titleStr,
                          QList<int> randTaskVars) const;
 
-    LoadStatus m_loadStatus;     ///< Статус менеджера заданий.
+    LoadStatus m_loadStatus;        ///< Статус менеджера заданий.
     QList<TaskDesc> m_taskList;     ///< Список загруженных заданий.
 };

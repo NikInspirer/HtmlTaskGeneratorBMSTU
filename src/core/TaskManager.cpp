@@ -2,7 +2,6 @@
 #include "TaskManager.h"
 #include <QDomDocument>
 #include <QRandomGenerator>
-#include <QDebug>
 
 /**
  * @brief Конструктор по-умолчанию Менеджера заданий.
