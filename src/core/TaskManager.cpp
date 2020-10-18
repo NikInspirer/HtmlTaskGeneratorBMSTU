@@ -4,16 +4,42 @@
 #include <QRandomGenerator>
 #include <QDebug>
 
+/**
+ * @brief Конструктор по-умолчанию Менеджера заданий.
+ */
 TaskManager::TaskManager()
     : m_loadStatus(LoadStatus::NOT_LOADED)
 {}
 
+/**
+ * @brief Возвращает статус последней загрузки заданий (до вызова метода
+ * TaskManager::load(const QString &) статус будет LoadStatus::NOT_LOADED).
+ * @return Статус последней загрузки заданий.
+ */
 LoadStatus
 TaskManager::getLoadStatus() const
 {
     return m_loadStatus;
 }
 
+/**
+ * @brief Производит попытку загрузить задание из заданного каталога.
+ *
+ * При существовании директории, путь к которой задан в аргументе #path,
+ * происходит сканирование всех вложенных файлов формата "*.html".
+ *
+ * Из просканированных файлов в память загружаются все DOM-элементы, которые
+ * описывают варианты заданий.
+ *
+ * В случае успешной загрзки или возникновения ошибки возвращается
+ * соответствующий статус LoadStatus. Статус последней попытки загрузить
+ * задания может быть получен при помощи метода
+ * TaskManager::getLoadStatus() const.
+ *
+ * @param path Путь к директории (каталогу), где располагаются файлы заданий с
+ * заготовленными вариантами задач.
+ * @return Статус загрузки заданий.
+ */
 LoadStatus
 TaskManager::load(const QString &path)
 {
@@ -130,6 +156,11 @@ TaskManager::getMaxVarCount() const
     return min;
 }
 
+/**
+ * @brief Производит сканирование файла, путь к которому хранится в #path.
+ * @param path Путь к сканируемому файлу.
+ * @return Дескриптор задания, соответствующего просканированному файлу.
+ */
 TaskDesc
 TaskManager::readTaskFile(const QString &path)
 {
@@ -169,6 +200,22 @@ TaskManager::readTaskFile(const QString &path)
     return description;
 }
 
+/**
+ * @brief Формирует списки случайных номеров задач каждого задания для
+ * #varCount вараинтов.
+ *
+ * Формирует список, состоящий из #varCount элементов. Каждый элемент этого
+ * списка также является списком, содержащим номера случайных задач для каждого
+ * из #taskCount заданий.
+ *
+ * Случайные номера задач формируются таким образом, чтобы они не повторялись
+ * в пределах одного задания среди всех сфоримрованных вариантов.
+ *
+ * @param taskCount Количетсво заданий.
+ * @param varCount Количество вараинтов задач в каждом задании.
+ * @return Списки случайных номеров задач каждого задания для #varCount
+ * вариантов.
+ */
 QList<QList<int>>
 TaskManager::genRandOrders(int taskCount, int varCount) const
 {
@@ -206,6 +253,25 @@ TaskManager::genRandOrders(int taskCount, int varCount) const
     return varTaskList;
 }
 
+/**
+ * @brief Генерирует 1 вараинт всех заданий в формате HTML и сохраняет его при
+ * помощи #device.
+ *
+ * На основе загруженных заданий #m_taskList производится формирование 1
+ * варианта заданий по шаблону resources/TaskTemplate.html.
+ *
+ * В формируемый вариант входит по 1 задаче для каждого задания. Номера
+ * используемых задач задаются при помощи #randTaskVars.
+ *
+ * После формирования происходит запись (сохранение) при помощи #device.
+ *
+ * @warning Размер #randTaskVars должен быть НЕ МЕНЬШЕ размера #m_taskList.
+ *
+ * @param device Qt-устройство для записи (сохранения) сформированного задания.
+ * @param titleStr Строка заголовка файла.
+ * @param randTaskVars Список номеров задач каждого задания, которые учавствуют
+ * в формировании варианта.
+ */
 void
 TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
                              QList<int> randTaskVars) const
