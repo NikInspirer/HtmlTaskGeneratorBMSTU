@@ -265,6 +265,7 @@ TaskManager::genRandOrders(int taskCount, int varCount) const
  *
  * После формирования происходит запись (сохранение) при помощи #device.
  *
+ * @warning Заголовок файла НЕ ДОЛЖЕН быть пустой строкой.
  * @warning Размер #randTaskVars должен быть НЕ МЕНЬШЕ размера #m_taskList.
  *
  * @param device Qt-устройство для записи (сохранения) сформированного задания.
