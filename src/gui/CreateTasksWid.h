@@ -19,7 +19,6 @@ private Q_SLOTS:
 
 private:
     void resetLoadStatus();
-    void setEnableForCreatingVars(bool isEnable);
 
     QLineEdit *m_inDirLE;   ///< Виджет для отображения каталога вараинтов.
     QLabel *m_loadStatusL;  ///< Label статуса загрузки вараинтов.
@@ -29,5 +28,6 @@ private:
     QLineEdit *m_outDirLE;  ///< Виджет для отображения выходного каталога.
     QPushButton *m_outDirPB;///< Кнопка выбора выходного каталога.
     QPushButton *m_createPB;///< Кнопка создания заданий.
+    QWidget *m_settingsWid; ///< Виджет настроек (для быстрого вкл./выкл.).
     TaskManager m_manager;  ///< Менеджер заданий.
 };

@@ -48,15 +48,18 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     this->resetLoadStatus();
 
     /* ----- Область настроек ----- */
+    m_settingsWid = new QWidget;
+    QGridLayout *setLayout = new QGridLayout(m_settingsWid);
+    setLayout->setContentsMargins(0, 0, 0, 0);
     QLabel *setTitleL = new QLabel(tr("Настройки генерации заданий"));
     setTitleL->setFont(titleFont);
-    layout->addWidget(setTitleL, 0, Qt::AlignCenter);
-    QGridLayout *setLayout = new QGridLayout;
+    setLayout->addWidget(setTitleL, 0, 0, 1, 2, Qt::AlignCenter);
     setLayout->addWidget(new QLabel("Название задания:"), 1, 0);
     m_nameLE = new QLineEdit;
     setLayout->addWidget(m_nameLE, 1, 1, Qt::AlignLeft);
     setLayout->addWidget(new QLabel("Количество вариантов:"), 2, 0);
     m_varCountSB = new QSpinBox;
+    m_varCountSB->setMinimum(1);
     setLayout->addWidget(m_varCountSB, 2, 1);
     setLayout->addWidget(new QLabel("Названия групп (разделенные '\\n'):"),
                          3, 0, 1, 2);
@@ -72,7 +75,8 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     setLayout->addLayout(outDirLayout, 6, 0, 1, 2);
     m_createPB = new QPushButton(tr("Сформировать задания"));
     setLayout->addWidget(m_createPB, 7, 0, 1, 2);
-    layout->addLayout(setLayout);
+    layout->addWidget(m_settingsWid);
+    m_settingsWid->setEnabled(false);
 }
 
 /**
@@ -90,6 +94,18 @@ CreateTasksWid::loadVars()
         m_inDirLE->setText( path );
         m_manager.load(path);
         this->resetLoadStatus();
+        if (m_manager.getLoadStatus() == LoadStatus::LOADED)
+        {
+            /* Активация настроек */
+            m_settingsWid->setEnabled(true);
+            /* Настройка доступного количества вариантов */
+            m_varCountSB->setMaximum( m_manager.getMaxVarCount() );
+            m_varCountSB->setValue( m_varCountSB->maximum() );
+        }
+        else
+        {
+            m_settingsWid->setEnabled(false);
+        }
     }
 }
 
@@ -110,9 +126,4 @@ CreateTasksWid::resetLoadStatus()
         break;
     }
     m_loadStatusL->setText(st);
-}
-
-void
-CreateTasksWid::setEnableForCreatingVars(bool isEnable)
-{
 }
