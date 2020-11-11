@@ -2,9 +2,12 @@
 #include <gui/CreateTasksWid.h>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
+#include <QTextEdit>
 #include <QFileDialog>
 #include <QDir>
 #include <QDebug>
@@ -19,9 +22,9 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
 
     /* ----- Область отображения каталога ----- */
     QHBoxLayout *dirLayout = new QHBoxLayout;
-    m_dirLE = new QLineEdit(tr("Каталог не выбран..."));
-    m_dirLE->setReadOnly(true);
-    dirLayout->addWidget(m_dirLE);
+    m_inDirLE = new QLineEdit(tr("Каталог не выбран..."));
+    m_inDirLE->setReadOnly(true);
+    dirLayout->addWidget(m_inDirLE);
     QPushButton *dirBtn = new QPushButton(tr("Открыть"));
     dirBtn->setToolTip( tr("Выбрать каталог с вариантами задач") );
     connect(dirBtn, &QPushButton::clicked, this, &CreateTasksWid::loadVars);
@@ -36,6 +39,30 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     statusLayout->addStretch(1);
     layout->addLayout(statusLayout);
     this->resetLoadStatus();
+
+    /* ----- Область настроек ----- */
+    QGridLayout *setLayout = new QGridLayout;
+    setLayout->addWidget(new QLabel("Название задания:"), 1, 0);
+    m_nameLE = new QLineEdit;
+    setLayout->addWidget(m_nameLE, 1, 1, Qt::AlignLeft);
+    setLayout->addWidget(new QLabel("Количество вариантов:"), 2, 0);
+    m_varCountSB = new QSpinBox;
+    setLayout->addWidget(m_varCountSB, 2, 1);
+    setLayout->addWidget(new QLabel("Названия групп (разделенные '\\n'):"),
+                         3, 0, 1, 2);
+    m_groupsTE = new QTextEdit;
+    setLayout->addWidget(m_groupsTE, 4, 0, 1, 2);
+    setLayout->addWidget(new QLabel("Выходной каталог:"), 5, 0, 1, 2);
+    QHBoxLayout *outDirLayout = new QHBoxLayout;
+    m_outDirLE = new QLineEdit;
+    m_outDirLE->setReadOnly(true);
+    outDirLayout->addWidget(m_outDirLE);
+    m_outDirPB = new QPushButton(tr("Выбрать"));
+    outDirLayout->addWidget(m_outDirPB);
+    setLayout->addLayout(outDirLayout, 6, 0, 1, 2);
+    m_createPB = new QPushButton(tr("Сформировать задания"));
+    setLayout->addWidget(m_createPB, 7, 0, 1, 2);
+    layout->addLayout(setLayout);
 }
 
 /**
@@ -50,7 +77,7 @@ CreateTasksWid::loadVars()
     if (path.isEmpty() == false)
     {
         /* ----- Файл выбран ----- */
-        m_dirLE->setText( path );
+        m_inDirLE->setText( path );
         m_manager.load(path);
         this->resetLoadStatus();
     }
