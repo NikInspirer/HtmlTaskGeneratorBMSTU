@@ -5,6 +5,8 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+//    app.setFont( QFont("Calibri") );
+    app.setFont( QFont("Arial") );
 
     CreateTasksWid wid;
     wid.show();
