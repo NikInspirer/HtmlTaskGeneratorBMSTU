@@ -17,10 +17,17 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
 
-    /* ----- Текст каталога с вариантами задач ----- */
-    layout->addWidget( new QLabel(tr("Каталог с вариантами задач:")) );
+    /* ----- Шрифт заголовков ----- */
+    QFont titleFont = this->font();
+    titleFont.setPointSize(titleFont.pointSize() + 2);
+    titleFont.setUnderline(true);
+    titleFont.setBold(true);
 
-    /* ----- Область отображения каталога ----- */
+    /* ----- Выбор каталога с вариантами задач ----- */
+    QLabel *inDirTitleL = new QLabel(tr("Каталог вариантов задач"));
+    inDirTitleL->setFont(titleFont);
+    layout->addWidget(inDirTitleL, 0, Qt::AlignCenter);
+    layout->addWidget( new QLabel(tr("Каталог с вариантами задач:")) );
     QHBoxLayout *dirLayout = new QHBoxLayout;
     m_inDirLE = new QLineEdit(tr("Каталог не выбран..."));
     m_inDirLE->setReadOnly(true);
@@ -41,6 +48,9 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     this->resetLoadStatus();
 
     /* ----- Область настроек ----- */
+    QLabel *setTitleL = new QLabel(tr("Настройки генерации заданий"));
+    setTitleL->setFont(titleFont);
+    layout->addWidget(setTitleL, 0, Qt::AlignCenter);
     QGridLayout *setLayout = new QGridLayout;
     setLayout->addWidget(new QLabel("Название задания:"), 1, 0);
     m_nameLE = new QLineEdit;
