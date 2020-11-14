@@ -198,7 +198,8 @@ CreateTasksWid::resetLoadStatus()
 QStringList
 CreateTasksWid::parseGroupNames() const
 {
-    return m_groupsTE->toPlainText().split("\n\r", Qt::SkipEmptyParts);
+    return m_groupsTE->toPlainText().split(QRegExp("[\r\n]"),
+                                           Qt::SkipEmptyParts);
 }
 
 /**
