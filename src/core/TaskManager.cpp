@@ -2,6 +2,8 @@
 #include "TaskManager.h"
 #include <QDomDocument>
 #include <QRandomGenerator>
+#include <QImage>
+#include <QBuffer>
 
 /**
  * @brief Конструктор по-умолчанию Менеджера заданий.
@@ -42,6 +44,7 @@ TaskManager::getLoadStatus() const
 LoadStatus
 TaskManager::load(const QString &path)
 {
+    m_path = path;
     m_taskList.clear();     /* отчистка старых заданий */
     /* ----- Чтение файлов с вариантами заданий ----- */
     QStringList filter("*.html");
@@ -113,8 +116,16 @@ TaskManager::generate(const GenSettings &settings)
                         QFile file( dir.filePath(name + ".html") );
                         if (file.open(QIODevice::WriteOnly) == true) {
                             /* ----- Формирование заданий ----- */
-                            this->generateTaskVar(&file, name,
-                                                  orders.takeFirst());
+                            GenStatus tryST;
+                            tryST = this->generateTaskVar(&file, name,
+                                                          orders.takeFirst());
+                            /* ----- Проверка ошибок формирования ----- */
+                            if (tryST != GenStatus::SUCCESS)
+                            {
+                                /* В процессе создания получена ошибка */
+                                isOk = false;
+                                status = tryST;
+                            }
                             file.close();
                         }
                         else {
@@ -290,11 +301,14 @@ TaskManager::genRandOrders(int taskCount, int varCount) const
  * @param titleStr Строка заголовка файла.
  * @param randTaskVars Список номеров задач каждого задания, которые учавствуют
  * в формировании варианта.
+ * @return Статус генерации заданий.
  */
-void
+GenStatus
 TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
                              QList<int> randTaskVars) const
 {
+    GenStatus status = GenStatus::SUCCESS;
+
     /* ----- Загрузка DOM-модели шаблона файла задания ----- */
     QFile tmpl(":/TaskTemplate.html");
     QDomDocument doc; doc.setContent(&tmpl);
@@ -313,12 +327,84 @@ TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
         /* формирование блока задания */
         QDomElement task = doc.createElement("div");
         task.setAttribute("class", "task");
-        task.appendChild(desc.title.cloneNode(true));
-        task.appendChild(desc.vars[randTaskVars.takeFirst()].cloneNode(true));
+        /* Вставка заголовка (с интеграцией изображений) */
+        {
+            QDomElement el = desc.title.cloneNode(true).toElement();
+            GenStatus tryST = this->integrateImgSrc(el);
+            if (tryST != GenStatus::SUCCESS)
+            {
+                status = tryST;
+            }
+            task.appendChild(el);
+        }
+        /* Вставка варианта задачи (с интеграцией изображений) */
+        {
+            QDomElement el = desc.vars[randTaskVars.takeFirst()]
+                                 .cloneNode(true).toElement();
+            GenStatus tryST = this->integrateImgSrc(el);
+            if (tryST != GenStatus::SUCCESS)
+            {
+                status = tryST;
+            }
+            task.appendChild(el);
+        }
         /* вставка блока задания в DOM-модель */
         taskHolder.appendChild(task);
     }
 
     /* ----- Сохранение сформированного задания ----- */
     device->write( doc.toByteArray() );
+
+    return status;
+}
+
+/**
+ * @brief Интегрирует изображение из файла в base64 тега <img>.
+ *
+ * Интеграция происходит для всех вложенных тегов <img> в #element.
+ * Сначала производиться попытка прочитать файл изображения, относительный путь
+ * к которому содержиться в атрибуте "src". После происходит преобразование
+ * сохранение изображения непосредственно в атрибуте "src" в кодировке base64.
+ *
+ * Если не удается открыть хотя бы одно изображение, то возварщается
+ * GenStatus::CAN_NOT_READ_IMG, а если проблем не возникло, то -
+ * GenStatus::SUCCESS.
+ *
+ * @warning Изменения применяются к полученному в качестве аргумента
+ * DOM-элементу.
+ *
+ * @param element DOM-элемент, для которого проводится интеграция изображения.
+ * @return Статус инеграции изображений.
+ */
+GenStatus
+TaskManager::integrateImgSrc(QDomElement element) const
+{
+    GenStatus status = GenStatus::SUCCESS;
+    /* ----- Проход по каждому <img> и интеграция изображения ----- */
+    QDomNodeList imgs = element.elementsByTagName("img");
+    for(int ind = 0; ind < imgs.size(); ind++)
+    {
+        /* ----- Чтение файла изображения из атрибута "src "----- */
+        QDomElement imgTag = imgs.item(ind).toElement();
+        QString srcAtr = imgTag.attribute("src");
+        QImage img(m_path + "/" + srcAtr);
+        if (img.isNull() == true)
+        {
+            /* Не удается открыть изображение */
+            status = GenStatus::CAN_NOT_READ_IMG;
+        }
+        else
+        {
+            /* ----- Формирование base64 из изображения ----- */
+            QByteArray base64;
+            QBuffer buffer(&base64);
+            buffer.open(QIODevice::WriteOnly);
+            img.save(&buffer, "PNG");
+            base64 = base64.toBase64();
+            buffer.close();
+            /* ----- Замена атрибута "src" у текущего тега <img> ----- */
+            imgTag.setAttribute("src", "data:image/png;base64," + QString(base64));
+        }
+    }
+    return status;
 }
