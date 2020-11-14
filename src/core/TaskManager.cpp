@@ -387,7 +387,7 @@ TaskManager::integrateImgSrc(QDomElement element) const
         /* ----- Чтение файла изображения из атрибута "src "----- */
         QDomElement imgTag = imgs.item(ind).toElement();
         QString srcAtr = imgTag.attribute("src");
-        QImage img(srcAtr);
+        QImage img(m_path + "/" + srcAtr);
         if (img.isNull() == true)
         {
             /* Не удается открыть изображение */
