@@ -143,6 +143,25 @@ CreateTasksWid::createTasks()
     if (this->checkSettings(&errors) == true)
     {
         /* ----- Ошибок нет => формирование задания ----- */
+        GenSettings settings;
+        settings.name = m_nameLE->text();
+        settings.varCount = m_varCountSB->value();
+        settings.groups = this->parseGroupNames();
+        settings.path = m_outDirLE->text();
+        GenStatus status = m_manager.generate(settings);
+        if (status == GenStatus::SUCCESS)
+        {
+            QMessageBox::information(this, tr("Задания созданы"),
+                                     tr("Задания успешно созданы в "
+                                        "соответсвии с настройками."));
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("Ошибка создания"),
+                                  tr("В процесс формирования заданий возникал "
+                                     "ошибка.\nЗадания сформированны не "
+                                     "полностью."));
+        }
     }
     else
     {
