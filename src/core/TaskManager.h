@@ -43,9 +43,9 @@ public:
 private:
     TaskDesc readTaskFile(const QString &path);
     QList<QList<int>> genRandOrders(int taskCount, int varCount) const;
-    void generateTaskVar(QIODevice *device, const QString &titleStr,
-                         QList<int> randTaskVars) const;
-    void integrateImgSrc(QDomElement element) const;
+    GenStatus generateTaskVar(QIODevice *device, const QString &titleStr,
+                              QList<int> randTaskVars) const;
+    GenStatus integrateImgSrc(QDomElement element) const;
 
     QString m_path;                 ///< Путь к каталогу вариантов задач.
     LoadStatus m_loadStatus;        ///< Статус менеджера заданий.
