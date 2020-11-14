@@ -2,6 +2,8 @@
 #include "TaskManager.h"
 #include <QDomDocument>
 #include <QRandomGenerator>
+#include <QImage>
+#include <QBuffer>
 
 /**
  * @brief Конструктор по-умолчанию Менеджера заданий.
@@ -42,6 +44,7 @@ TaskManager::getLoadStatus() const
 LoadStatus
 TaskManager::load(const QString &path)
 {
+    m_path = path;
     m_taskList.clear();     /* отчистка старых заданий */
     /* ----- Чтение файлов с вариантами заданий ----- */
     QStringList filter("*.html");
@@ -313,12 +316,46 @@ TaskManager::generateTaskVar(QIODevice *device, const QString &titleStr,
         /* формирование блока задания */
         QDomElement task = doc.createElement("div");
         task.setAttribute("class", "task");
-        task.appendChild(desc.title.cloneNode(true));
-        task.appendChild(desc.vars[randTaskVars.takeFirst()].cloneNode(true));
+        /* Вставка заголовка (с интеграцией изображений) */
+        {
+            QDomElement el = desc.title.cloneNode(true).toElement();
+            this->integrateImgSrc(el);
+            task.appendChild(el);
+        }
+        /* Вставка варианта задачи (с интеграцией изображений) */
+        {
+            QDomElement el = desc.vars[randTaskVars.takeFirst()]
+                                 .cloneNode(true).toElement();
+            this->integrateImgSrc(el);
+            task.appendChild(el);
+        }
         /* вставка блока задания в DOM-модель */
         taskHolder.appendChild(task);
     }
 
     /* ----- Сохранение сформированного задания ----- */
     device->write( doc.toByteArray() );
+}
+
+void
+TaskManager::integrateImgSrc(QDomElement element) const
+{
+    /* ----- Проход по каждому <img> и интеграция изображения ----- */
+    QDomNodeList imgs = element.elementsByTagName("img");
+    for(int ind = 0; ind < imgs.size(); ind++)
+    {
+        /* ----- Чтение файла изображения из атрибута "src "----- */
+        QDomElement imgTag = imgs.item(ind).toElement();
+        QString srcAtr = imgTag.attribute("src");
+        QImage img(m_path + "/" + srcAtr);
+        /* ----- Формирование base64 из изображения ----- */
+        QByteArray base64;
+        QBuffer buffer(&base64);
+        buffer.open(QIODevice::WriteOnly);
+        img.save(&buffer, "PNG");
+        base64 = base64.toBase64();
+        buffer.close();
+        /* ----- Замена атрибута "src" у текущего тега <img> ----- */
+        imgTag.setAttribute("src", "data:image/png;base64," + QString(base64));
+    }
 }
