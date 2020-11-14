@@ -10,6 +10,7 @@
 #include <QTextEdit>
 #include <QFileDialog>
 #include <QDir>
+#include <QMessageBox>
 #include <QDebug>
 
 CreateTasksWid::CreateTasksWid(QWidget *parent)
@@ -70,11 +71,15 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     m_outDirLE = new QLineEdit;
     m_outDirLE->setReadOnly(true);
     outDirLayout->addWidget(m_outDirLE);
-    m_outDirPB = new QPushButton(tr("Выбрать"));
-    outDirLayout->addWidget(m_outDirPB);
+    QPushButton *outDirPB = new QPushButton(tr("Выбрать"));
+    connect(outDirPB, &QPushButton::clicked,
+            this, &CreateTasksWid::selectOutDir);
+    outDirLayout->addWidget(outDirPB);
     setLayout->addLayout(outDirLayout, 6, 0, 1, 2);
-    m_createPB = new QPushButton(tr("Сформировать задания"));
-    setLayout->addWidget(m_createPB, 7, 0, 1, 2);
+    QPushButton *createPB = new QPushButton(tr("Сформировать задания"));
+    connect(createPB, &QPushButton::clicked,
+            this, &CreateTasksWid::createTasks);
+    setLayout->addWidget(createPB, 7, 0, 1, 2);
     layout->addWidget(m_settingsWid);
     m_settingsWid->setEnabled(false);
 }
@@ -109,6 +114,44 @@ CreateTasksWid::loadVars()
     }
 }
 
+/**
+ * @brief [private slot] Обработка нажатия кнопки выбора выходного каталога.
+ *
+ * Запускает выбор каталога. Если каталог выбран, то устанавливает его путь в
+ * качестве значения для #m_outDirLE.
+ */
+void
+CreateTasksWid::selectOutDir()
+{
+    QString path = QFileDialog::getExistingDirectory(this,
+                                  tr("Выберите каталог для сохранения заданий"),
+                                                     m_inDirLE->text());
+    if (path.isEmpty() == false)
+    {
+        m_outDirLE->setText( path );
+    }
+}
+
+/**
+ * @brief [private slot] Производит попытку формирования файлов заданий для
+ * каждой группы.
+ */
+void
+CreateTasksWid::createTasks()
+{
+    QStringList errors;
+    if (this->checkSettings(&errors) == true)
+    {
+        /* ----- Ошибок нет => формирование задания ----- */
+    }
+    else
+    {
+        /* ----- Найдены ошибки => вывод сообщения ----- */
+        QMessageBox::critical(this, tr("Проблемы с настройками"),
+                              errors.join("\n"));
+    }
+}
+
 void
 CreateTasksWid::resetLoadStatus()
 {
@@ -126,4 +169,46 @@ CreateTasksWid::resetLoadStatus()
         break;
     }
     m_loadStatusL->setText(st);
+}
+
+/**
+ * @brief Производит парсинг названий групп из #m_groupsTE по символам
+ * '\n', '\r'.
+ * @return Список названий групп.
+ */
+QStringList
+CreateTasksWid::parseGroupNames() const
+{
+    return m_groupsTE->toPlainText().split("\n\r", Qt::SkipEmptyParts);
+}
+
+/**
+ * @brief Производит проверку введеных данных настроек генерации заданий.
+ * @param errors[out] Если errors != nulltr, то записывает в него сообщения
+ * об ошибках.
+ * @return true - если все поля корректные; инчае - false.
+ */
+bool
+CreateTasksWid::checkSettings(QStringList *errors) const
+{
+    bool isCorrect = true;
+    /* ----- Проверка названия задания ----- */
+    if (m_nameLE->text().isEmpty() == true)
+    {
+        isCorrect = false;
+        if (errors) { errors->append(tr("Не указано название задания.")); }
+    }
+    /* ----- Проверка названий групп ----- */
+    if (this->parseGroupNames().isEmpty() == true)
+    {
+        isCorrect = false;
+        if (errors) { errors->append(tr("Не удалось разобрать названия групп.")); }
+    }
+    /* ----- Проверка выходного каталога ----- */
+    if (m_outDirLE->text().isEmpty() == true)
+    {
+        isCorrect = false;
+        if (errors) { errors->append(tr("Не выбран выходной каталог.")); }
+    }
+    return isCorrect;
 }

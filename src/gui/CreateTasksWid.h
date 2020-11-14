@@ -16,9 +16,13 @@ public:
 
 private Q_SLOTS:
     void loadVars();
+    void selectOutDir();
+    void createTasks();
 
 private:
     void resetLoadStatus();
+    QStringList parseGroupNames() const;
+    bool checkSettings(QStringList *errors = nullptr) const;
 
     QLineEdit *m_inDirLE;   ///< Виджет для отображения каталога вараинтов.
     QLabel *m_loadStatusL;  ///< Label статуса загрузки вараинтов.
@@ -26,8 +30,6 @@ private:
     QSpinBox *m_varCountSB; ///< Поле ввода количества вариантов заданий.
     QTextEdit *m_groupsTE;  ///< Поле ввода названий групп.
     QLineEdit *m_outDirLE;  ///< Виджет для отображения выходного каталога.
-    QPushButton *m_outDirPB;///< Кнопка выбора выходного каталога.
-    QPushButton *m_createPB;///< Кнопка создания заданий.
     QWidget *m_settingsWid; ///< Виджет настроек (для быстрого вкл./выкл.).
     TaskManager m_manager;  ///< Менеджер заданий.
 };
