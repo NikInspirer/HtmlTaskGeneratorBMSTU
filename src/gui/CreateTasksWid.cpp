@@ -34,7 +34,7 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     m_inDirLE->setReadOnly(true);
     dirLayout->addWidget(m_inDirLE);
     QPushButton *dirBtn = new QPushButton(tr("Открыть"));
-    dirBtn->setToolTip( tr("Выбрать каталог с вариантами задач") );
+    dirBtn->setToolTip( tr("Выбрать каталог с вариантами задач.") );
     connect(dirBtn, &QPushButton::clicked, this, &CreateTasksWid::loadVars);
     dirLayout->addWidget(dirBtn);
     layout->addLayout(dirLayout);
@@ -57,14 +57,24 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     setLayout->addWidget(setTitleL, 0, 0, 1, 2, Qt::AlignCenter);
     setLayout->addWidget(new QLabel("Название задания:"), 1, 0);
     m_nameLE = new QLineEdit;
+    m_nameLE->setToolTip(tr("Название задания. Используется в качестве\n"
+                            "заголовка в каждом файле заданий, а также\n"
+                            "имени выходного каталога."));
     setLayout->addWidget(m_nameLE, 1, 1, Qt::AlignLeft);
     setLayout->addWidget(new QLabel("Количество вариантов:"), 2, 0);
     m_varCountSB = new QSpinBox;
     m_varCountSB->setMinimum(1);
+    m_varCountSB->setToolTip(tr("Количество выриантов заданий. Определяет,\n"
+                                "сколько различных вариантов заданий будет\n"
+                                "сформировано для каждой группы."));
     setLayout->addWidget(m_varCountSB, 2, 1);
     setLayout->addWidget(new QLabel("Названия групп (разделенные '\\n'):"),
                          3, 0, 1, 2);
     m_groupsTE = new QTextEdit;
+    m_groupsTE->setToolTip(tr("Названия групп, для которых формируются задания.\n"
+                              "Название каждой группы должно начинаться с новой строки.\n"
+                              "Различные задания будут сформированны для каждой группы\n"
+                              "независимо друг от друга."));
     setLayout->addWidget(m_groupsTE, 4, 0, 1, 2);
     setLayout->addWidget(new QLabel("Выходной каталог:"), 5, 0, 1, 2);
     QHBoxLayout *outDirLayout = new QHBoxLayout;
@@ -72,11 +82,14 @@ CreateTasksWid::CreateTasksWid(QWidget *parent)
     m_outDirLE->setReadOnly(true);
     outDirLayout->addWidget(m_outDirLE);
     QPushButton *outDirPB = new QPushButton(tr("Выбрать"));
+    outDirPB->setToolTip(tr("Выбрать выходной каталог."));
     connect(outDirPB, &QPushButton::clicked,
             this, &CreateTasksWid::selectOutDir);
     outDirLayout->addWidget(outDirPB);
     setLayout->addLayout(outDirLayout, 6, 0, 1, 2);
     QPushButton *createPB = new QPushButton(tr("Сформировать задания"));
+    createPB->setToolTip(tr("Сформировать варианты заданий в соответсвии\n"
+                            "с заданными настройками."));
     connect(createPB, &QPushButton::clicked,
             this, &CreateTasksWid::createTasks);
     setLayout->addWidget(createPB, 7, 0, 1, 2);
